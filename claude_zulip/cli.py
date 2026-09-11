@@ -7,6 +7,7 @@
   claude-zulip hello
   claude-zulip mcp
   claude-zulip status
+  claude-zulip admin <setup|invite-link|invite|mint|transfer|reconcile-owners|users|bots|deactivate> --admin-zuliprc FILE
 
 State lives in ~/.claude/channels/zulip (override with --state-dir); the skill
 goes to ~/.claude/skills/zulip-chat (override with --skills-dir).
@@ -269,6 +270,50 @@ def cmd_status(a, p: Paths) -> None:
                            ledger.load_limits(p.limits), days=7))
 
 
+def cmd_admin(a, p: Paths) -> None:
+    from . import admin
+
+    rc = a.admin_zuliprc or os.environ.get("CLAUDE_ZULIP_ADMIN_RC")
+    if not rc:
+        sys.exit("give --admin-zuliprc FILE (your own API key as a zuliprc) or set CLAUDE_ZULIP_ADMIN_RC")
+    import zulip
+
+    client = zulip.Client(config_file=str(Path(rc).expanduser()))
+    channels = list(a.channels)  # main() already split the comma list
+    if a.admin_cmd == "setup":
+        descriptions = {c: admin.DEFAULT_CHANNELS.get(c, "") for c in channels}
+        admin.setup(client, descriptions, a.description)
+    elif a.admin_cmd == "invite-link":
+        print(admin.invite_link(client, a.days, channels))
+    elif a.admin_cmd == "invite":
+        admin.invite_emails(client, a.emails, a.days, channels)
+        print("invited:", ", ".join(a.emails))
+    elif a.admin_cmd == "mint":
+        bot = admin.mint(client, a.name, channels, a.owner)
+        print(f"created {bot['name']} <{bot['email']}> (user {bot['bot_id']})"
+              + (f", owned by {bot['owner']['full_name']}" if bot["owner"] else "") + "\n")
+        block = admin.zuliprc_block(bot["email"], bot["api_key"], bot["site"])
+        if a.no_message:
+            print(block)
+        else:
+            link = a.invite_link or admin.invite_link(client, 30, channels)
+            print("---- send this to them, privately ----\n")
+            print(admin.dm_text(admin.org_name(client), link, a.kit_url, block))
+    elif a.admin_cmd == "transfer":
+        bot, owner = admin.transfer(client, a.bot_email, a.owner_email)
+        print(f"{bot['full_name']} is now owned by {owner['full_name']}")
+    elif a.admin_cmd == "reconcile-owners":
+        print("\n".join(admin.reconcile_owners(client, dry_run=a.dry_run)))
+    elif a.admin_cmd in ("users", "bots"):
+        print("\n".join(admin.list_users(client, bots_only=a.admin_cmd == "bots")))
+    elif a.admin_cmd == "deactivate":
+        u = admin.deactivate(client, a.email)
+        print(f"deactivated {u['full_name']}")
+    elif a.admin_cmd == "message":
+        link = a.invite_link or admin.invite_link(client, 30, channels)
+        print(admin.dm_text(admin.org_name(client), link, a.kit_url, None))
+
+
 def _add_listen_options(sp: argparse.ArgumentParser) -> None:
     sp.add_argument("--full-access", action="store_true",
                     help="no tool denylist: sessions get whatever the working directory's Claude Code setup has")
@@ -315,6 +360,26 @@ def main(argv: list[str] | None = None) -> None:
 
     sub.add_parser("status", help="paths, listener state, usage")
 
+    ad = sub.add_parser("admin", help="org admin: set up the org, invite people, mint and hand over bots")
+    ad.add_argument("--admin-zuliprc", help="your own API key as a zuliprc (or set CLAUDE_ZULIP_ADMIN_RC)")
+    ad.add_argument("--channels", default=",".join(DEFAULT_CHANNELS))
+    ad.add_argument("--kit-url", default="https://github.com/BaesTheorem/claude-zulip-kit")
+    asub = ad.add_subparsers(dest="admin_cmd", required=True)
+    sp = asub.add_parser("setup", help="invite-only, admins-only invites, the channels as defaults (idempotent)")
+    sp.add_argument("--description", default="A group of friends and their Claudes. Bots here are ordinary users.")
+    sp = asub.add_parser("invite-link", help="print a reusable invite link"); sp.add_argument("--days", type=int, default=30)
+    sp = asub.add_parser("invite", help="invite by email"); sp.add_argument("emails", nargs="+"); sp.add_argument("--days", type=int, default=30)
+    sp = asub.add_parser("mint", help="create \"<Name>'s Claude\" and print the message to send them")
+    sp.add_argument("name"); sp.add_argument("--owner", help="their email, if they already joined")
+    sp.add_argument("--invite-link", help="reuse an existing invite link instead of minting a new one")
+    sp.add_argument("--no-message", action="store_true", help="print only the bot config")
+    sp = asub.add_parser("transfer", help="hand a bot to its person"); sp.add_argument("bot_email"); sp.add_argument("owner_email")
+    sp = asub.add_parser("reconcile-owners", help="hand every minted bot to the member with that first name"); sp.add_argument("--dry-run", action="store_true")
+    asub.add_parser("users"); asub.add_parser("bots")
+    sp = asub.add_parser("deactivate"); sp.add_argument("email")
+    sp = asub.add_parser("message", help="print the invite message for someone who will make their own bot")
+    sp.add_argument("--invite-link")
+
     a = ap.parse_args(argv)
     if hasattr(a, "channels") and isinstance(a.channels, str):
         a.channels = [c.strip() for c in a.channels.split(",") if c.strip()]
@@ -334,6 +399,8 @@ def main(argv: list[str] | None = None) -> None:
         cmd_mcp(a, p)
     elif a.cmd == "status":
         cmd_status(a, p)
+    elif a.cmd == "admin":
+        cmd_admin(a, p)
 
 
 if __name__ == "__main__":

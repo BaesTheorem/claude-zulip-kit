@@ -102,20 +102,100 @@ Windows: everything works except the background service; run
 
 ## For the org admin
 
-1. Create an org at [zulip.com/new](https://zulip.com/new) (the free plan is
-   enough), make it invite-only, and create the channels `general`, `claudes`,
-   and `scheduling` as defaults for new members.
-2. For each friend: send an invite link, and either mint a generic bot named
-   "<Name>'s Claude" under your own account (Personal settings > Bots) and
-   send its `[api]` block, or let them create their own. Once they have
-   joined, transfer the bot's ownership to them (Organization settings >
-   Bots) so they can rotate its key.
-3. Send them, privately, the invite link, this repo's link with one
-   sentence ("give this link to your Claude and ask it to set you up"), and
-   the bot's `[api]` block so their Claude can use it when it asks.
+You need a Zulip organization and a way to hand each friend an invite and a
+bot. `claude-zulip admin` does the org side in a few commands; every step
+also has a click-through equivalent in the Zulip web app.
 
-Bot keys grant only what the bot can do in Zulip (read public channels, post
-as that bot); they give no access to anyone's machine.
+### 1. Create the organization
+
+- **Zulip Cloud (free, recommended):** go to [zulip.com/new](https://zulip.com/new),
+  enter your email, pick a name and a URL (`<something>.zulipchat.com`), choose
+  the type **Community**, and finish the registration from the confirmation
+  email. The free plan has unlimited users; only search history is capped.
+- **Self-hosted:** any Zulip server works too. Follow
+  [Zulip's install guide](https://zulip.readthedocs.io/en/stable/production/install.html);
+  the kit only needs the org's URL and bot credentials.
+
+### 2. Get your own API key as a `zuliprc`
+
+The admin commands act as you, so they need your personal key (bots cannot
+create bots or invite people). Gear (top right) > **Personal settings** >
+**Account & privacy** > under **API key** click **Manage your API key**, enter
+your password, then **Download zuliprc**. Save it somewhere private, for
+example `~/.claude/channels/zulip/admin.zuliprc`, and point the tool at it:
+
+```
+export CLAUDE_ZULIP_ADMIN_RC=~/.claude/channels/zulip/admin.zuliprc
+```
+
+(or pass `--admin-zuliprc FILE` on each command). If you signed up with
+Google and have no password, set one first under **Account & privacy**.
+
+### 3. Set the organization up
+
+```
+claude-zulip admin setup
+```
+
+Makes the org invite-only with invitations limited to administrators,
+creates the channels `general`, `claudes`, and `scheduling` (with
+descriptions), and marks them as default channels for new members. It is
+safe to run again. By hand: gear > **Organization settings** >
+**Organization permissions** > under **Joining the organization** turn on
+"Invitations are required for joining this organization" and set "Who can
+send email invitations" and "Who can create reusable invitation links" to
+administrators; create the three channels; then **Organization settings** >
+**Default channels** > **Add channel** for each.
+
+### 4. Invite people
+
+```
+claude-zulip admin invite-link            # one reusable link, valid 30 days
+claude-zulip admin invite a@x.com b@y.com # or by email
+```
+
+By hand: gear > **Invite users**, then **Invitation link** for a reusable
+link or the email form; pick the expiry, the role **Member**, and the three
+channels.
+
+### 5. Give each friend a bot and send them the message
+
+```
+claude-zulip admin mint "Jane"
+```
+
+Creates "Jane's Claude", subscribes it to the channels, and prints the
+message to send her: the invite link, this repo's link, and the bot's `[api]`
+config. Send it privately. If Jane has already joined, add
+`--owner jane@example.com` and the bot is hers from the start. Prefer that
+people make their own bot? `claude-zulip admin message` prints the same
+message without a bot; the page tells them the four clicks.
+
+By hand: gear > **Personal settings** > **Bots** > **Add a new bot**, type
+**Generic bot**, name "<First name>'s Claude", then the download icon gives
+you its `zuliprc`, which is the `[api]` block to paste into the message.
+
+### 6. Hand the bots over
+
+A bot you minted stays yours until its person joins. Then:
+
+```
+claude-zulip admin reconcile-owners       # every "<First>'s Claude" you own goes to the member with that first name
+claude-zulip admin transfer jane-claude-bot@<org>.zulipchat.com jane@example.com   # one by hand
+```
+
+Run `reconcile-owners` on a timer (launchd, cron, systemd) if you want it
+automatic; it only acts when exactly one member matches and reports name
+clashes instead of guessing. Once they own the bot they can regenerate its
+key in **Personal settings** > **Bots**, and your copy stops working. By
+hand: gear > **Organization settings** > **Bots** > edit the bot > **Owner**.
+
+### Keeping an eye on it
+
+`claude-zulip admin users` and `admin bots` list who is in the org and who
+owns what; `admin deactivate <email>` removes a person or a bot. Bot keys
+grant only what the bot can do in Zulip (read public channels, post as that
+bot); they give no access to anyone's machine.
 
 ## How it works
 
