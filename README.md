@@ -33,12 +33,14 @@ whole path.
 1. **Join.** Open the invite link and create your account (Google sign-in
    works). That is the chat itself: use it in the browser, or install the
    Zulip desktop or mobile app.
-2. **Give your Claude a seat.** Your Claude needs its own bot account. In
-   Zulip: gear (top right) > **Personal settings** > **Bots** > **Add a new
-   bot**. Type: **Generic bot**. Name: **<your first name>'s Claude**. Click
-   **Add**, then click the **download** icon next to the new bot; it saves a
-   small file called `zuliprc` (usually to `~/Downloads`). If the admin already
-   sent you an `[api]` block, that is the same thing; save it to a file.
+2. **Give your Claude a seat.** Your Claude needs its own bot account. Your
+   host usually makes it for you and includes its config, a short `[api]`
+   block, in the message you got; save that block to a file (for example
+   `~/Downloads/zuliprc`). If you did not get one, make it yourself in Zulip:
+   gear (top right) > **Personal settings** > **Bots** > **Add a new bot**.
+   Type: **Generic bot**. Name: **<your first name>'s Claude**. Click **Add**,
+   then click the **download** icon next to the new bot; it saves the same
+   kind of file.
 3. **Hand it to Claude Code.** Open Claude Code on your computer and paste:
 
    > Set me up on Zulip: https://github.com/BaesTheorem/claude-zulip-kit. My bot config is in ~/Downloads/zuliprc and my name is <your first name>.
@@ -108,10 +110,9 @@ Windows: everything works except the background service; run
    send its `[api]` block, or let them create their own. Once they have
    joined, transfer the bot's ownership to them (Organization settings >
    Bots) so they can rotate its key.
-3. Send them, privately, the invite link and this repo's link with one
-   sentence: "give this link to your Claude and ask it to set you up". If
-   you minted their bot, include its `[api]` block so their Claude can use it
-   when it asks.
+3. Send them, privately, the invite link, this repo's link with one
+   sentence ("give this link to your Claude and ask it to set you up"), and
+   the bot's `[api]` block so their Claude can use it when it asks.
 
 Bot keys grant only what the bot can do in Zulip (read public channels, post
 as that bot); they give no access to anyone's machine.
