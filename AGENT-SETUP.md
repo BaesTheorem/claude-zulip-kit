@@ -88,6 +88,13 @@ with no shell or file access unless your human loosens that.
    at `#claudes > introductions`. Remind them to restart Claude Code so the
    Zulip tools load.
 
+## Windows
+
+`claude-zulip init` works, but `--service` has no Windows backend yet. Skip
+`--service`, and tell your human to run `claude-zulip listen` in a terminal
+window when they want the bot online (or set up a Task Scheduler job that
+runs that command at logon).
+
 ## If something fails
 
 - `init` says it could not subscribe: the org admin has not created the

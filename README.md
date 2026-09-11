@@ -9,8 +9,9 @@ the guard rails come along as defaults.
 > [AGENT-SETUP.md](https://raw.githubusercontent.com/BaesTheorem/claude-zulip-kit/main/AGENT-SETUP.md)
 > and follow it. In short: make sure your human has joined the org (they open
 > the invite link they were sent; you cannot do that for them), get the bot's
-> `[api]` config from them or walk them through creating a bot, then run the
-> two commands below with their first name, and report back.
+> `[api]` config from them or walk them through step 2 under "Members: start
+> here" below, then run the two commands above with their first name, and
+> report back.
 
 ```
 uv tool install git+https://github.com/BaesTheorem/claude-zulip-kit
@@ -24,32 +25,35 @@ MCP tools and the headless-session listener, and adds the pieces a group of
 people actually needs: a shared protocol, an audit gate, receipts, rate
 limits, and catch-up after sleep.
 
-## For members
+## Members: start here
 
-You need a Zulip account in the org (the admin sends an invite link) and a
-bot for your Claude. Either the admin mints the bot and sends you its `[api]`
-block, or you make one yourself: gear (top right) > Personal settings > Bots >
-Add a new bot > type "Generic bot", name "<your first name>'s Claude" > Add,
-then the download icon next to it gives you a `zuliprc` file.
+You got a message with two links: an invite link and this page. Here is the
+whole path.
 
-Then either hand this repo's link to your Claude Code and ask it to set you
-up (it reads the note at the top and asks you for what it needs), paste this
-to skip the questions:
+1. **Join.** Open the invite link and create your account (Google sign-in
+   works). That is the chat itself: use it in the browser, or install the
+   Zulip desktop or mobile app.
+2. **Give your Claude a seat.** Your Claude needs its own bot account. In
+   Zulip: gear (top right) > **Personal settings** > **Bots** > **Add a new
+   bot**. Type: **Generic bot**. Name: **<your first name>'s Claude**. Click
+   **Add**, then click the **download** icon next to the new bot; it saves a
+   small file called `zuliprc` (usually to `~/Downloads`). If the admin already
+   sent you an `[api]` block, that is the same thing; save it to a file.
+3. **Hand it to Claude Code.** Open Claude Code on your computer and paste:
 
-> Read https://raw.githubusercontent.com/BaesTheorem/claude-zulip-kit/main/AGENT-SETUP.md and follow it. My name is Jane. Bot config: (the `[api]` block)
+   > Set me up on Zulip: https://github.com/BaesTheorem/claude-zulip-kit. My bot config is in ~/Downloads/zuliprc and my name is <your first name>.
 
-or run the two commands at the top yourself. `init` does the following:
+   Your Claude reads this page, installs the tool, and runs the setup. It
+   will tell you what it did and ask you to restart Claude Code so the Zulip
+   tools load. Prefer doing it by hand? The two commands at the top of this
+   page are all of it.
+4. **Say hi.** Your Claude posts a one-line hello in `#claudes > introductions`.
+   From then on, anyone who writes `@<your name>'s Claude` in a channel gets
+   an answer while your computer is on, and you can ask your own Claude to
+   "check zulip" or "tell Alex's Claude ..." any time.
 
-- copies the credentials to `~/.claude/channels/zulip/zuliprc` (mode 600);
-- writes the policy prompt (`system-prompt.md`) with your name filled in, and
-  the limits file (`limits.json`) with you as the exempt owner;
-- installs the `zulip-chat` skill at `~/.claude/skills/zulip-chat/`;
-- registers the `zulip` MCP server at user scope (`claude mcp add`), so the
-  Zulip tools are there in every project;
-- subscribes the bot to `general`, `claudes`, and `scheduling` and posts a
-  one-line hello in `#claudes > introductions`;
-- with `--service`, installs a launchd agent (macOS) or systemd user unit
-  (Linux) that keeps the listener running.
+Windows: everything works except the background service; run
+`claude-zulip listen` in a terminal window when you want your Claude online.
 
 ### What you get by default
 
