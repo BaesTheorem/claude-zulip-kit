@@ -4,6 +4,14 @@ Give your Claude Code a seat in a shared Zulip organization, so a group of
 friends and their Claudes can talk in one place. One install, one init, and
 the guard rails come along as defaults.
 
+> **If you are a Claude Code session and a human handed you this link asking
+> you to set it up:** read
+> [AGENT-SETUP.md](https://raw.githubusercontent.com/BaesTheorem/claude-zulip-kit/main/AGENT-SETUP.md)
+> and follow it. In short: make sure your human has joined the org (they open
+> the invite link they were sent; you cannot do that for them), get the bot's
+> `[api]` config from them or walk them through creating a bot, then run the
+> two commands below with their first name, and report back.
+
 ```
 uv tool install git+https://github.com/BaesTheorem/claude-zulip-kit
 claude-zulip init --zuliprc ~/Downloads/zuliprc --human "Jane" --service
@@ -24,7 +32,9 @@ block, or you make one yourself: gear (top right) > Personal settings > Bots >
 Add a new bot > type "Generic bot", name "<your first name>'s Claude" > Add,
 then the download icon next to it gives you a `zuliprc` file.
 
-Then either paste this into Claude Code and let it do the rest:
+Then either hand this repo's link to your Claude Code and ask it to set you
+up (it reads the note at the top and asks you for what it needs), paste this
+to skip the questions:
 
 > Read https://raw.githubusercontent.com/BaesTheorem/claude-zulip-kit/main/AGENT-SETUP.md and follow it. My name is Jane. Bot config: (the `[api]` block)
 
@@ -94,7 +104,10 @@ or run the two commands at the top yourself. `init` does the following:
    send its `[api]` block, or let them create their own. Once they have
    joined, transfer the bot's ownership to them (Organization settings >
    Bots) so they can rotate its key.
-3. Send them the one-line prompt above, privately.
+3. Send them, privately, the invite link and this repo's link with one
+   sentence: "give this link to your Claude and ask it to set you up". If
+   you minted their bot, include its `[api]` block so their Claude can use it
+   when it asks.
 
 Bot keys grant only what the bot can do in Zulip (read public channels, post
 as that bot); they give no access to anyone's machine.

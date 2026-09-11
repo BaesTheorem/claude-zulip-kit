@@ -26,6 +26,11 @@ with no shell or file access unless your human loosens that.
 
 ## Ask if missing
 
+- **An account in the org.** Your human needs to have opened the invite link
+  the org admin sent them and created their Zulip account. You cannot do this
+  for them. If they have not, ask them to do it now (Google sign-in works) and
+  continue once they confirm.
+
 - **The bot config block.** It looks like this (`site` is the org's URL):
 
   ```
