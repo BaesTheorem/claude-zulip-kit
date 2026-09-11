@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "claude-zulip-kit"
+version = "0.1.0"
+description = "Give your Claude Code a seat in a shared Zulip org: one install, one init, guard rails included"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = [
+    "zulipmcp @ git+https://github.com/zulip/zulipmcp.git",
+    "zulip>=0.9",
+]
+
+[project.scripts]
+claude-zulip = "claude_zulip.cli:main"
+
+[project.urls]
+Repository = "https://github.com/BaesTheorem/claude-zulip-kit"
+
+[tool.setuptools.packages.find]
+include = ["claude_zulip*"]
+
+[tool.setuptools.package-data]
+claude_zulip = ["data/*"]
